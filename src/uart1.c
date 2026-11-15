@@ -1,12 +1,12 @@
 ﻿/*
  * uart1.c
- */ 
+ */
 
 #include "uart1.h"
-#include "uart0.h"
 
 volatile uint8_t bt_data;
 
+//블루투스(HC-06) 수신: 주행 명령 문자 1개 저장
 ISR(USART1_RX_vect)
 {
 	bt_data = UDR1;
@@ -17,10 +17,10 @@ void init_uart1(void)
 	//전송속도 9600bps
 	UBRR1H = 0x00;
 	UBRR1L = 207;
-	
+
 	//2배속
 	UCSR1A |= 1 << U2X1;
-	
+
 	//송신, 수신, RX INT 가능
 	UCSR1B |= 1 << RXEN1 | 1 << TXEN1 | 1 << RXCIE1;
 }
@@ -32,4 +32,3 @@ void UART1_transmit(uint8_t data)
 		;
 	UDR1 = data;   // HW 전송 register에 data를 송신 한다.
 }
-

@@ -43,7 +43,8 @@
 
 ```
 src/
-├── main.c        초기화, 메인 루프, Timer0 1ms 인터럽트
+├── main.c        초기화, 메인 루프
+├── timer.c       Timer0 1ms 인터럽트, 주행 시간 계산
 ├── common.h      자동차 상태 구조체 (모드, 센서 3개, 주행 카운터)
 ├── drive.c       수동/자동 주행 로직
 ├── motor.c       L298N 방향 제어, PWM 출력

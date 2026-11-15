@@ -21,5 +21,7 @@
 #define ECHO_PIN_RIGHT  6
 
 void init_ultrasonic(void);
+void ultrasonic_processing(void);
+void ultrasonic_tick(void);	// Timer0 1ms 인터럽트에서 호출
 
-#endif
+#endif /* ULTRASONIC_H_ */

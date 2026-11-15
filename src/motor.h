@@ -1,6 +1,6 @@
 ﻿/*
- * pwm.h
- */ 
+ * motor.h
+ */
 
 #ifndef MOTOR_H_
 #define MOTOR_H_
@@ -23,4 +23,4 @@ void turn_left(int speed);
 void turn_right(int speed);
 void stop(void);
 
-#endif
+#endif /* MOTOR_H_ */

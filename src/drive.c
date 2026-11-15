@@ -1,27 +1,15 @@
 ﻿/*
  * drive.c
- */ 
+ */
 
 #include "drive.h"
+#include "motor.h"
+#include "uart1.h"
 
-int func_state = MANUAL_MODE;
-extern volatile uint8_t bt_data;
-extern volatile Car car;
+static void manual_mode(void);
+static void auto_mode(void);
 
-void BT_print_distance(void);
-
-int limit = 20;
-int max_speed = 450;
-int min_speed = 300;
-
-void (*pfunc[]) () =
-{
-	manual_mode,
-	auto_mode,
-	distance_check
-};
-
-void manual_mode(void)
+static void manual_mode(void)
 {
 	char cmd = bt_data;
 	bt_data = 0;
@@ -33,7 +21,7 @@ void manual_mode(void)
 		car.drive_state = FORWARD;
 		forward(500, 500);
 		break;
-		
+
 		case 'B':
 		case 'b':
 		car.state = DRIVE;
@@ -43,7 +31,7 @@ void manual_mode(void)
 		car.drive_state = BACKWARD;
 		backward(500);
 		break;
-		
+
 		case 'L':
 		case 'l':
 		car.state = DRIVE;
@@ -53,7 +41,7 @@ void manual_mode(void)
 		car.drive_state = LEFT;
 		forward(0, 500);
 		break;
-		
+
 		case 'R':
 		case 'r':
 		car.state = DRIVE;
@@ -63,19 +51,19 @@ void manual_mode(void)
 		car.drive_state = RIGHT;
 		forward(500, 0);
 		break;
-		
+
 		case 'S':
 		case 's':
 		car.drive_state = STOP;
 		stop();
 		break;
-		
+
 		default:
 		break;
 	}
 }
 
-void auto_mode(void)
+static void auto_mode(void)
 {
 	int front = car.sensor[DIR_FRONT].distance;
 	int left  = car.sensor[DIR_LEFT].distance;
@@ -90,7 +78,7 @@ void auto_mode(void)
 	{
 		car.drive_state = STOP;
 	}
-	
+
 	if(cmd == 'F' || cmd == 'f')
 	{
 		car.drive_state = FORWARD;
@@ -100,7 +88,7 @@ void auto_mode(void)
 	{
 		car.drive_state = STOP;
 	}
-	
+
 	int diff = abs(left-right);
 
 	switch(car.drive_state)
@@ -108,12 +96,12 @@ void auto_mode(void)
 		case STOP:
 		stop();
 		return;
-		
+
 		case FORWARD:
 		if (front >= 40 && left <= 40 && right <= 40) {
 			is_counted = 0;
 		}
-		
+
 		// 왼쪽이 비교적 넓으면
 		if(left > 40 && left > right + 3)
 		{
@@ -136,7 +124,7 @@ void auto_mode(void)
 			car.turn_timer = 15;
 			return;
 		}
-		
+
 		// 전방이 가까우면
 		if(front < 40)
 		{
@@ -160,7 +148,7 @@ void auto_mode(void)
 			}
 			return;
 		}
-		
+
 		// 전방이 가깝지 않고 양쪽의 거리가 차이 나면 값 조정 (라인 유지 주행)
 		else if(diff > 2)
 		{
@@ -172,7 +160,7 @@ void auto_mode(void)
 
 		forward(400,400);
 		break;
-		
+
 		// 왼쪽으로 돌기
 		case LEFT:
 		forward(0,400);
@@ -180,7 +168,7 @@ void auto_mode(void)
 			car.drive_state = FORWARD;
 		}
 		break;
-		
+
 		// 오른쪽으로 돌기
 		case RIGHT:
 		forward(400,0);
@@ -188,15 +176,13 @@ void auto_mode(void)
 			car.drive_state = FORWARD;
 		}
 		break;
+
+		default:	// 자동 모드에서는 후진하지 않음
+		break;
 	}
 }
 
-void distance_check(void)
-{
-	
-}
-
-void drive_processing()
+void drive_processing(void)
 {
 	// 1. 모드 전환 예외 처리 (주행 모드가 바뀌면 초기화)
 	if (car.prev_mode != car.mode)
@@ -207,7 +193,7 @@ void drive_processing()
 		car.turn_timer = 0;
 		car.prev_mode = car.mode;
 	}
-	
+
 	// 2. 현재 최상위 상태(car.state)에 따른 분리
 	switch (car.state)
 	{
@@ -223,19 +209,19 @@ void drive_processing()
 			break;
 		}
 		break;
-		
+
 		case DONE:
 		// 주행이 끝난 상태라면 주행 관련 함수는 절대 호출하지 않고,
 		// 오직 정지 상태 유지 및 기록 출력(FND용 데이터 유지 등)만 수행한다.
 		stop();
 		break;
-		
+
 		default:
 		break;
 	}
 }
 
-
+// 세 방향 거리를 블루투스로 전송 (디버깅용)
 void BT_print_distance(void)
 {
 	char buf[60];
